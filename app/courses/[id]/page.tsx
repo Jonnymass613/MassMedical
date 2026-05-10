@@ -1,10 +1,10 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import { courses } from '@/lib/data';
+import { courses, MindMapNode } from '@/lib/data';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { PlayCircle, Image as ImageIcon, FileText, Map as MapIcon, ChevronLeft } from 'lucide-react';
+import { PlayCircle, Image as ImageIcon, FileText, Map as MapIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CourseDetail() {
@@ -12,6 +12,7 @@ export default function CourseDetail() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'video' | 'diagram' | 'slideshow' | 'mindmap'>('video');
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const course = courses.find((c) => c.id === id);
 
@@ -75,7 +76,7 @@ export default function CourseDetail() {
         </div>
 
         {/* Content Area */}
-        <div className="bg-gray-50 rounded-2xl p-8 min-h-[600px] flex flex-col border border-gray-100">
+        <div className="bg-gray-50 rounded-2xl p-8 min-h-[600px] flex flex-col border border-gray-100 shadow-inner">
           {activeTab === 'video' && (
             <div className="flex-grow flex flex-col">
               <h2 className="text-2xl font-bold mb-6 flex items-center">
@@ -90,8 +91,8 @@ export default function CourseDetail() {
                   allowFullScreen
                 />
               </div>
-              <p className="mt-6 text-gray-600">
-                This comprehensive video covers the core concepts of {course.title}. Watch carefully and take notes on the key points presented.
+              <p className="mt-6 text-gray-600 italic">
+                Note: This video provides a high-level overview of {course.title}. Please review the slideshow and mind map for detailed curricular information.
               </p>
             </div>
           )}
@@ -106,12 +107,9 @@ export default function CourseDetail() {
                 <img
                   src={course.diagramUrl}
                   alt={course.title}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain p-4"
                 />
               </div>
-              <p className="mt-6 text-gray-600">
-                Study this diagram to visualize the structures and relationships discussed in the curriculum.
-              </p>
             </div>
           )}
 
@@ -121,17 +119,41 @@ export default function CourseDetail() {
                 <FileText className="w-6 h-6 mr-2 text-yellow-600" />
                 Lesson Slideshow
               </h2>
-              <div className="flex-grow bg-white rounded-xl border border-gray-200 flex items-center justify-center p-12">
-                <div className="text-center">
-                  <FileText className="w-20 h-20 text-gray-200 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg mb-6">Interactive Slideshow for {course.title}</p>
-                  <a
-                    href={course.slideshowUrl}
-                    target="_blank"
-                    className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors"
+              <div className="flex-grow bg-white rounded-xl border border-gray-200 flex flex-col p-8 shadow-sm">
+                <div className="flex-grow flex flex-col justify-center max-w-4xl mx-auto w-full">
+                  <h3 className="text-3xl font-bold text-gray-800 mb-8 border-l-4 border-blue-600 pl-4">
+                    {course.slides[currentSlide].title}
+                  </h3>
+                  <ul className="space-y-6">
+                    {course.slides[currentSlide].content.map((point, idx) => (
+                      <li key={idx} className="flex items-start">
+                        <div className="w-2 h-2 rounded-full bg-blue-600 mt-2.5 mr-4 flex-shrink-0" />
+                        <span className="text-xl text-gray-700 leading-relaxed">{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="mt-12 flex items-center justify-between border-t pt-8">
+                  <button
+                    disabled={currentSlide === 0}
+                    onClick={() => setCurrentSlide(s => s - 1)}
+                    className="flex items-center space-x-2 px-6 py-2 rounded-lg bg-gray-100 text-gray-600 disabled:opacity-30 hover:bg-gray-200 transition-colors font-semibold"
                   >
-                    Open Slideshow in New Tab
-                  </a>
+                    <ChevronLeft className="w-5 h-5" />
+                    <span>Previous</span>
+                  </button>
+                  <div className="text-gray-500 font-medium">
+                    Slide {currentSlide + 1} of {course.slides.length}
+                  </div>
+                  <button
+                    disabled={currentSlide === course.slides.length - 1}
+                    onClick={() => setCurrentSlide(s => s + 1)}
+                    className="flex items-center space-x-2 px-6 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-30 hover:bg-blue-700 transition-colors font-semibold shadow-md"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -143,20 +165,52 @@ export default function CourseDetail() {
                 <MapIcon className="w-6 h-6 mr-2 text-purple-600" />
                 Concept Mind Map
               </h2>
-              <div className="flex-grow relative rounded-xl overflow-hidden bg-white border border-gray-200">
-                <img
-                  src={course.mindMapUrl}
-                  alt={`${course.title} Mind Map`}
-                  className="w-full h-full object-contain"
-                />
+              <div className="flex-grow bg-white rounded-xl border border-gray-200 p-8 overflow-auto shadow-sm">
+                <div className="flex items-center justify-center min-h-[400px]">
+                   <MindMapTree node={course.mindMap} isRoot />
+                </div>
               </div>
-              <p className="mt-6 text-gray-600">
-                Use this mind map to see the big picture and how different sub-topics connect within {course.title}.
-              </p>
             </div>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function MindMapTree({ node, isRoot = false }: { node: MindMapNode, isRoot?: boolean }) {
+  return (
+    <div className="flex flex-col items-center">
+      <div className={`px-6 py-3 rounded-xl border-2 shadow-sm font-bold text-lg ${
+        isRoot ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-gray-800 border-gray-200'
+      }`}>
+        {node.label}
+      </div>
+      {node.children && node.children.length > 0 && (
+        <div className="relative pt-8">
+          {/* Vertical line from parent */}
+          <div className="absolute top-0 left-1/2 w-px h-8 bg-gray-300" />
+
+          <div className="flex space-x-8">
+            {node.children.map((child, idx) => (
+              <div key={idx} className="relative">
+                {/* Horizontal connection line */}
+                {node.children!.length > 1 && (
+                  <div className={`absolute top-0 h-px bg-gray-300 ${
+                    idx === 0 ? 'left-1/2 right-0' :
+                    idx === node.children!.length - 1 ? 'left-0 right-1/2' :
+                    'left-0 right-0'
+                  }`} />
+                )}
+                <div className="pt-8">
+                   <div className="absolute top-0 left-1/2 w-px h-8 bg-gray-300" />
+                   <MindMapTree node={child} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
