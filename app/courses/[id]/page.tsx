@@ -15,11 +15,22 @@ export default function CourseDetail() {
 
   const course = courses.find((c) => c.id === id);
 
+  const getTierPriority = (tier: string | null) => {
+    if (tier === 'medical') return 3;
+    if (tier === 'nursing') return 2;
+    if (tier === 'highschool') return 1;
+    return 0;
+  };
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/');
-    } else if (user && course && user.subscription !== course.tier) {
-      router.push('/dashboard');
+    } else if (user && course) {
+      const userPriority = getTierPriority(user.subscription);
+      const coursePriority = getTierPriority(course.tier);
+      if (userPriority < coursePriority) {
+        router.push('/dashboard');
+      }
     }
   }, [user, isLoading, router, course]);
 
