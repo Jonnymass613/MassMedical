@@ -22,8 +22,8 @@ To run this project on your own computer or from your GitHub:
 
 ### 1. Clone the repository
 ```bash
-git clone <your-repository-url>
-cd <repository-name>
+git clone https://github.com/Jonnymass613/MassMedical.git
+cd MassMedical
 ```
 
 ### 2. Install Dependencies
