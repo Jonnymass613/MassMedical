@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { PlayCircle, FileText, Layout, Map, Lock, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 export default function Dashboard() {
   const { user, isLoading } = useAuth();
@@ -102,7 +103,12 @@ export default function Dashboard() {
                     {isLocked ? (
                       <div className="bg-white rounded-3xl shadow-sm overflow-hidden border border-gray-200 opacity-60 grayscale group relative">
                         <div className="h-56 bg-gray-100 relative overflow-hidden">
-                           <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
+                           <Image
+                             src={course.thumbnail}
+                             alt={course.title}
+                             fill
+                             className="object-cover"
+                           />
                            <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-[2px] flex items-center justify-center">
                               <Lock className="w-12 h-12 text-white/80" />
                            </div>
@@ -119,10 +125,11 @@ export default function Dashboard() {
                         className="block bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 border border-gray-100 group relative overflow-hidden"
                       >
                         <div className="h-56 bg-blue-50 relative overflow-hidden">
-                          <img
+                          <Image
                             src={course.thumbnail}
                             alt={course.title}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            fill
+                            className="object-cover transition-transform duration-700 group-hover:scale-110"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                              <div className="bg-white/20 backdrop-blur-md p-4 rounded-2xl">

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   images: {
@@ -9,8 +10,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // In Next.js, allowing all hosts is usually handled by the proxy or binding to 0.0.0.0
-  // but we can add experimental features if needed. For now, 0.0.0.0 should suffice.
+  // @ts-ignore - Turbopack root configuration for Next.js 16+
+  turbopack: {
+    root: path.join(process.cwd()),
+  },
 };
 
 export default nextConfig;
